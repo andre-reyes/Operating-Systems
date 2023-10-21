@@ -19,10 +19,12 @@ void *buyer_remove(void *arg);
 char provider1_id[] = "Provider A";
 char provider2_id[] = "Provider B";
 
+sem_t bin_sem;	// semaphore
 
 int main(int argc, char **argv)
 {
     pthread_t providers[2], buyers[BUYER_THREAD_COUNT];
+    void *thread_result;
 
 
     int buyer_id[BUYER_THREAD_COUNT];
@@ -35,29 +37,32 @@ int main(int argc, char **argv)
         exit(0);
     }
 
+    //semaphore initialization, first value = 0
+    state = sem_init(&bin_sem, 0 ,0);
+    if(state!=0)
+    puts("Error semaphore initialization!!!");
+
     // create provider threads
-    
     pthread_create(&providers[0], NULL, provider_insert, &provider1_id[0]);
     pthread_create(&providers[1], NULL, provider_insert, &provider2_id[1]);
-    
 
     // create buyer threads
-    for (i = 0; i < BUYER_THREAD_COUNT; i++)
-    {
+    for (i = 0; i < BUYER_THREAD_COUNT; i++){
         buyer_id[i] = i;
         pthread_create(&buyers[i], NULL, buyer_remove, &buyer_id[i]);
     }
 
-    // wait for the provider and buyer threads to finish
-    for (i = 0; i < 2; i++)
-    {
-        pthread_join(providers[i], NULL);
+    // waiting for provider and buyer threads to terminate
+    for (i = 0; i < 2; i++){
+        pthread_join(providers[i], &thread_result);
     }
-    for (i = 0; i < BUYER_THREAD_COUNT; i++)
-    {
-        pthread_join(buyers[i], NULL);
+    for (i = 0; i < BUYER_THREAD_COUNT; i++){
+        pthread_join(buyers[i], &thread_result);
     }
-    pthread
+    
+    sem_destroy(&bin_sem);	// destroy semaphore
+    pthread_mutex_destroy(&mutx);	// destroy mutex
+
     return 0;
 }
 
@@ -79,6 +84,7 @@ void *provider_insert(void *arg)
         // insert the item into the queue
         queue[buffer++] = item;
         printf("%s produced item %d\n", (char*)arg, item);
+        sem_post(&bin_sem);	// semaphore to increase
 
         pthread_cond_signal(&queue_full);
         pthread_mutex_unlock(&queue_mutex);
@@ -93,8 +99,8 @@ void *buyer_remove(void *arg)
     int item;
     while (1)
     {
+        sem_wait(&bin_sem);	//decrease index_counter
         pthread_mutex_lock(&queue_mutex);
-
         // wait until the queue is not empty
         while (buffer == 0)
         {
