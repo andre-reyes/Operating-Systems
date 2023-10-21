@@ -78,13 +78,13 @@ void *producer(void *q) // producer thread
         pthread_mutex_lock(f->mutex); // taking lock on mutex
         while (f->full)               // wait untill the space is not created
         {
-            printf("producer: queue is full.n");
+            printf("producer: queue is full./n");
             pthread_cond_wait(f->nF, f->mutex);
         }
         qadd(f, i);                     // add element to queue
         pthread_mutex_unlock(f->mutex); // accuire the lock
         pthread_cond_signal(f->nE);     // signal the block consumer
-        printf("(producer) Putting %d : %d items in the queue.n", i, r);
+        printf("(producer) Putting %d : %d items in the queue./n", i, r);
         usleep(100000);
     }
 
@@ -102,13 +102,13 @@ void *consumer(void *q) // consumer thread
         pthread_mutex_lock(f->mutex); // taking lock on mutex of buffer
         while (f->empty)              // wait until one item added to buffer
         {
-            printf("consumer: queue is empty.n");
+            printf("consumer: queue is empty./n");
             pthread_cond_wait(f->nE, f->mutex); // signal the block producer to add item
         }
         qdeletet1(f, &d);               // remove item from queue
         pthread_mutex_unlock(f->mutex); // acquire lock
         pthread_cond_signal(f->nF);
-        printf("(consumer) Getting %d : %d items in the queue.n", d, r);
+        printf("(consumer) Getting %d : %d items in the queue./n", d, r);
         usleep(500000);
     }
 
@@ -140,7 +140,7 @@ queue *queueInit(void) // intialise the queue
     count = pthread_mutex_init(q->mutex, NULL);                    // if mutex is not initialised
     if (count)
     {
-        printf("n ERROR : pthread_mutex_init %d ", count);
+        printf("/n ERROR : pthread_mutex_init %d ", count);
         exit(-1);
     }
 
@@ -156,7 +156,7 @@ void qdelete(queue *q)
     count = pthread_mutex_destroy(q->mutex); // mutex destroy
     if (count)                               // if mutex is not destroy
     {
-        printf("n ERROR : pthread_mutex_destroy %d ", count);
+        printf("/n ERROR : pthread_mutex_destroy %d ", count);
         exit(-1);
     }
     free(q->mutex); // delete mutex
