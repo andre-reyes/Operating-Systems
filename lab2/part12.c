@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #define buffersize 10
-#define NUM_PROVIDER 4
+#define NUM_PROVIDER 2
 #define NUM_BUYER 260
 
 pthread_mutex_t mutex;
@@ -46,7 +46,7 @@ void *provider(void *param)
 
     srand(time(NULL));
 
-    item = rand() % 5000;
+    item = rand() % 100;
 
     waittime = rand() % 5;
 
