@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     
     sem_destroy(&bin_sem);	// destroy semaphore
     pthread_mutex_destroy(&queue_mutex);	// destroy mutex
-
+    printf("Terminate!!!\n");
     return 0;
 }
 
