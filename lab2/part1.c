@@ -3,29 +3,32 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#define PROVIDER_THREAD_COUNT 2    // provider thread count
 #define BUYER_THREAD_COUNT  atoi(argv[1])// buyer thread count command-line argument
-#define BUFFER 20      // maximum size of the queue
+#define BUFFER_SIZE 20      // maximum size of the queue
 
-int queue[BUFFER];
+int queue[BUFFER_SIZE];
 int buffer = 0;
 pthread_cond_t queue_available = PTHREAD_COND_INITIALIZER;
 pthread_cond_t queue_full = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t()
 
 void *provider_insert(void *arg);
 void *buyer_remove(void *arg); 
 
+char provider1_id[] = "Provider A";
+char provider2_id[] = "Provider B";
+
+
 int main(int argc, char **argv)
 {
-    int i;
-    char provider1_id[] = "Provider A";
-    char provider2_id[] = "Provider B";
+    pthread_t providers[2], buyers[BUYER_THREAD_COUNT];
+
 
     int buyer_id[BUYER_THREAD_COUNT];
-    pthread_t providers[PROVIDER_THREAD_COUNT];
-    pthread_t buyers[BUYER_THREAD_COUNT];
-
+    int i;
+    
+    // make sure we have right number or format of args in command line
     if (argc != 2)
     {
         printf("Format must be:  [file location] <int>\n");
@@ -42,12 +45,11 @@ int main(int argc, char **argv)
     for (i = 0; i < BUYER_THREAD_COUNT; i++)
     {
         buyer_id[i] = i;
-        pthread_create(&buyers[i], NULL,
-                       buyer_remove, &buyer_id[i]);
+        pthread_create(&buyers[i], NULL, buyer_remove, &buyer_id[i]);
     }
 
     // wait for the provider and buyer threads to finish
-    for (i = 0; i < PROVIDER_THREAD_COUNT; i++)
+    for (i = 0; i < 2; i++)
     {
         pthread_join(providers[i], NULL);
     }
@@ -55,7 +57,7 @@ int main(int argc, char **argv)
     {
         pthread_join(buyers[i], NULL);
     }
-
+    pthread
     return 0;
 }
 
@@ -69,7 +71,7 @@ void *provider_insert(void *arg)
         pthread_mutex_lock(&queue_mutex);
 
         // wait until the queue is not full
-        while (buffer == BUFFER)
+        while (buffer == BUFFER_SIZE)
         {
             pthread_cond_wait(&queue_available, &queue_mutex);
         }
