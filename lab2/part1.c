@@ -9,42 +9,41 @@
 
 int queue[BUFFER];
 int buffer = 0;
-pthread_cond_t queue_available = pthread_cond_init;
+pthread_cond_t queue_available = PTHREAD_COND_INITIALIZER;
 pthread_cond_t queue_full = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void *provider_insert(void *arg);
 void *buyer_remove(void *arg); 
 
-int main(int argc, char *argv)
+int main(int argc, char **argv)
 {
     int i;
+    char provider1_id[] = "Provider A";
+    char provider2_id[] = "Provider B";
 
-    int provider_ids[2];
-    int buyer_ids[BUYER_THREAD_COUNT];
+    int buyer_id[BUYER_THREAD_COUNT];
     pthread_t providers[PROVIDER_THREAD_COUNT];
     pthread_t buyers[BUYER_THREAD_COUNT];
 
     if (argc != 2)
     {
-        fprintf("Format must be:  [file location] <int>\n", argv[0]);
+        printf("Format must be:  [file location] <int>\n");
         exit(0);
     }
 
     // create provider threads
     
-    provider_id[0] = "Provider A";
-    provider_id[1] = "Provider B";
-    pthread_create(&providers[0], NULL, provider_insert, &provider_ids[0]);
-    pthread_create(&providers[1], NULL, provider_insert, &provider_ids[1]);
+    pthread_create(&providers[0], NULL, provider_insert, &provider1_id[0]);
+    pthread_create(&providers[1], NULL, provider_insert, &provider2_id[1]);
     
 
     // create buyer threads
     for (i = 0; i < BUYER_THREAD_COUNT; i++)
     {
-        buyer_ids[i] = i;
+        buyer_id[i] = i;
         pthread_create(&buyers[i], NULL,
-                       buyer_remove, &buyer_ids[i]);
+                       buyer_remove, &buyer_id[i]);
     }
 
     // wait for the provider and buyer threads to finish
@@ -77,7 +76,7 @@ void *provider_insert(void *arg)
 
         // insert the item into the queue
         queue[buffer++] = item;
-        printf("Provider %s produced item %d\n", *((int *)arg), item);
+        printf("%s produced item %d\n", (char*)arg, item);
 
         pthread_cond_signal(&queue_full);
         pthread_mutex_unlock(&queue_mutex);
