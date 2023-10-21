@@ -1,0 +1,37 @@
+# the compiler: gcc for C program, define as g++ for C++
+CC = gcc
+
+# compiler flags:
+#  -g    adds debugging information to the executable file
+#  -Wall turns on most, but not all, compiler warnings
+CFLAGS = -g -Wall
+
+# the build target executable:
+TARGET1 = test
+TARGET2 = test1
+
+#
+# typing 'make' will invoke the first target entry in the file 
+# (in this case the all target entry)
+# you can name this target entry anything, but "all" or "default"  
+# are the most commonly used names by convention
+#
+all: $(TARGET1) $(TARGET2) 
+
+#
+# target entry to build program executable from program
+# object files. I have commented out the .h files but you can uncomment 
+# them if you have any.
+#
+$(TARGET1): $(TARGET1).c #$(TARGET1).h
+	$(CC) $(CFLAGS) -o $(TARGET1) $(TARGET1).c -lpthread
+
+$(TARGET2): $(TARGET2).c #$(TARGET2).h
+	$(CC) $(CFLAGS) -o $(TARGET2) $(TARGET2).c -lpthread
+
+#
+# To start from scratch type 'make clean'. This removes the executable files 
+# and all old .o object files.
+#
+clean:
+	$(RM) $(TARGET1) $(TARGET2)
