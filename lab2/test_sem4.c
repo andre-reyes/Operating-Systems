@@ -64,10 +64,9 @@ int main(int argc, char **argv)
 // Thread increases item
 void *thread_Insert(void *arg)
 {
-  int i;
   printf("Creating Thread: %s\n", (char*)arg);
   
-  for(i=0;i<BUFFER_SIZE;i++)
+  for(int i=0;i<BUFFER_SIZE;i++)
   {
     pthread_mutex_lock(&mutx);
     
@@ -90,11 +89,10 @@ void *thread_Insert(void *arg)
 // Thread decreases item
 void *thread_Remove(void *arg)
 {
-  int i;
   
   printf("Creating Thread: %s\n", (char*)arg);
   
-  for(i=0;i<BUFFER_SIZE/2;i++)
+  for(int i=0;i<BUFFER_SIZE/2;i++)
   {
     sem_wait(&bin_sem);	//decrease index_counter
     pthread_mutex_lock(&mutx);
