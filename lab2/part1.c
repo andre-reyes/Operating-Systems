@@ -11,7 +11,7 @@
 int queue[BUFFER_SIZE];
 int buffer_counter = 0;
 pthread_cond_t queue_available = PTHREAD_COND_INITIALIZER;
-pthread_cond_t queue_full = PTHREAD_COND_INITIALIZER;
+pthread_cond_t queue_not_empty = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void *provider_insert(void *arg);
@@ -71,10 +71,9 @@ int main(int argc, char **argv)
 void *provider_insert(void *arg)
 {
     int item;
-    for(int i=0;i<BUFFER_SIZE;i++)
-    {
+    while(true){
         // produce an item
-        item = rand() % 10 + 1; // produce item 1-100
+        item = rand() % 100 + 1; // produce item 1-100
         pthread_mutex_lock(&queue_mutex);
 
         // wait until the queue is not full
@@ -87,7 +86,7 @@ void *provider_insert(void *arg)
         queue[buffer_counter++] = item;
         printf("%s produced item %d\n", (char*)arg, item);
         sem_post(&bin_sem);	// semaphore to increase
-        pthread_cond_signal(&queue_full);
+        pthread_cond_signal(&queue_not_empty);
         pthread_mutex_unlock(&queue_mutex);
         sleep(2);
     }
@@ -104,7 +103,7 @@ void *buyer_remove(void *arg)
         // wait until the queue is not empty
         while (buffer_counter == 0)
         {
-            pthread_cond_wait(&queue_full, &queue_mutex);
+            pthread_cond_wait(&queue_not_empty, &queue_mutex);
         }
 
         // buy an item from the queue
