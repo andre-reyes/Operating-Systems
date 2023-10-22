@@ -89,8 +89,7 @@ void *provider_insert(void *arg)
     }
     if(index_counter<BUFFER_SIZE)
     {
-      buffer[index_counter] = index_counter;
-      index_counter++;
+      buffer[index_counter++] = index_counter;
       
       printf("%s produced item %d\n", (char*)arg, index_counter);
 
@@ -108,19 +107,20 @@ void *provider_insert(void *arg)
 // Thread decreases item
 void *buyer_remove(void *arg)
 {
+  int item;
+
   while (index_counter == 0)
-      {
-          pthread_cond_wait(&queue_not_empty, &queue_mutex);
-      }
-  for(int i=0;i<BUFFER_SIZE;i++)
+    {
+      pthread_cond_wait(&queue_not_empty, &mutx);
+    }
+  for(int i = 0;i < BUFFER_SIZE; i++)
   {
     sem_wait(&bin_sem);	//decrease index_counter
     pthread_mutex_lock(&mutx);
     sleep(1);
-    printf("Buyer %d bought item %d\n", *((int *)arg), index_counter);
-    buffer[index_counter] = 0;
-    index_counter--;
+    buffer[--index_counter];
+    printf("Buyer %d bought item %d\n", *((int *)arg), item);
     pthread_mutex_unlock(&mutx);
-    }
+  }
 }
 
