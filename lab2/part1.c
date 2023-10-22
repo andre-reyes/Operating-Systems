@@ -54,9 +54,9 @@ int main(int argc, char **argv)
     }
 
     // waiting for provider and buyer threads to terminate
-    for (i = 0; i < 2; i++){
-        pthread_join(providers[i], &thread_result);
-    }
+    pthread_join(providers[0], &thread_result);
+    pthread_join(providers[1], &thread_result);
+    
     for (i = 0; i < BUYER_THREAD_COUNT; i++){
         pthread_join(buyers[i], &thread_result);
     }
@@ -83,7 +83,7 @@ void *provider_insert(void *arg)
         }
 
         // insert the item into the queue
-        queue[buffer_counter ++] = item;
+        queue[buffer_counter++] = item;
         printf("%s produced item %d\n", (char*)arg, item);
         sem_post(&bin_sem);	// semaphore to increase
 
@@ -91,7 +91,7 @@ void *provider_insert(void *arg)
         pthread_mutex_unlock(&queue_mutex);
 
         // sleep
-        sleep(1);
+        sleep(2);
     }
     return NULL;
 }
@@ -104,13 +104,13 @@ void *buyer_remove(void *arg)
         sem_wait(&bin_sem);	//decrease index_counter
         pthread_mutex_lock(&queue_mutex);
         // wait until the queue is not empty
-        while (buffer_counter  == 0)
+        while (buffer_counter == 0)
         {
             pthread_cond_wait(&queue_full, &queue_mutex);
         }
 
         // buy an item from the queue
-        item = queue[--buffer_counter ];
+        item = queue[--buffer_counter];
         printf("Buyer %d bought item %d\n", *((int *)arg), item);
 
         pthread_cond_signal(&queue_available);
