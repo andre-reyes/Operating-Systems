@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     }
 
     //semaphore initialization, first value = 0
-    state1 = pthread_mutex_init(&mutx, NULL);
+    state1 = pthread_mutex_init(&queue_mutex, NULL);
     state2 = sem_init(&bin_sem, 0 ,0);
     if(state1||state2!=0)
         puts("Error mutex & semaphore initialization!!!");
