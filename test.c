@@ -48,7 +48,8 @@ int main(int argc, char **argv)
     pthread_create(&t1, NULL, provider_insert, &provider1);
     pthread_create(&t2, NULL, provider_insert, &provider2);
     for(int i = 0;i < BUYER_THREAD_COUNT; i++){
-        pthread_create(&t3, NULL, buyer_remove, &thread3);
+        buyer_id[i] = i;
+        pthread_create(&t3, NULL, buyer_remove, &buyer_id[i]);
     }
     // Waiting thread to terminate
     pthread_join(t1, &thread_result);
