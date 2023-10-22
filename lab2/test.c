@@ -83,7 +83,7 @@ void *provider_insert(void *arg)
   {
     pthread_mutex_lock(&mutx);
     // wait until the queue is not full
-    while (buffer_counter  == BUFFER_SIZE)
+    while (index_counter  == BUFFER_SIZE)
     {
         pthread_cond_wait(&queue_available, &mutx);
     }
