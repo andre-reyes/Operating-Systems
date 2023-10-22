@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
 
     int buyer_id[BUYER_THREAD_COUNT];
-    int i;
+    int state1, state2;
     
     // make sure we have right number or format of args in command line
     if (argc != 2)
@@ -39,9 +39,10 @@ int main(int argc, char **argv)
     }
 
     //semaphore initialization, first value = 0
-    int state = sem_init(&bin_sem, 0 ,0);
-    if(state!=0)
-    puts("Error semaphore initialization!!!");
+    state1 = pthread_mutex_init(&mutx, NULL);
+    state2 = sem_init(&bin_sem, 0 ,0);
+    if(state1||state2!=0)
+        puts("Error mutex & semaphore initialization!!!");
 
     // create provider threads
     pthread_create(&providers[0], NULL, provider_insert, &provider1_id[0]);
