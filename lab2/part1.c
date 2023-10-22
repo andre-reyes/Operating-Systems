@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     pthread_create(&providers[1], NULL, provider_insert, &provider2_id[1]);
 
     // create buyer threads
-    for (i = 0; i < BUYER_THREAD_COUNT; i++){
+    for (int i = 0; i < BUYER_THREAD_COUNT; i++){
         buyer_id[i] = i;
         pthread_create(&buyers[i], NULL, buyer_remove, &buyer_id[i]);
     }
@@ -58,11 +58,11 @@ int main(int argc, char **argv)
     pthread_join(providers[0], &thread_result);
     pthread_join(providers[1], &thread_result);
     
-    for (i = 0; i < BUYER_THREAD_COUNT; i++){
+    for (int i = 0; i < BUYER_THREAD_COUNT; i++){
         pthread_join(buyers[i], &thread_result);
+    printf("Terminate!!!\n");
     }
     
-    printf("Terminate!!!\n");
     sem_destroy(&bin_sem);	// destroy semaphore
     pthread_mutex_destroy(&queue_mutex);	// destroy mutex
     return 0;
@@ -82,15 +82,14 @@ void *provider_insert(void *arg)
         {
             pthread_cond_wait(&queue_available, &queue_mutex);
         }
-
+        
         // insert the item into the queue
         queue[buffer_counter++] = item;
         printf("%s produced item %d\n", (char*)arg, item);
         sem_post(&bin_sem);	// semaphore to increase
         pthread_cond_signal(&queue_full);
-        sleep(2);
-        
         pthread_mutex_unlock(&queue_mutex);
+        sleep(2);
     }
     return NULL;
 }
