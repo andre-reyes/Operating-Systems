@@ -60,9 +60,9 @@ int main(int argc, char **argv)
     
     for (int i = 0; i < BUYER_THREAD_COUNT; i++){
         pthread_join(buyers[i], &thread_result);
-    printf("Terminate!!!\n");
     }
     
+    printf("Terminate!!!\n");
     sem_destroy(&bin_sem);	// destroy semaphore
     pthread_mutex_destroy(&queue_mutex);	// destroy mutex
     return 0;
@@ -96,8 +96,7 @@ void *provider_insert(void *arg)
 void *buyer_remove(void *arg)
 {
     int item;
-    for(int i=0;i<BUFFER_SIZE;i++)
-    {
+    while(true){
         sem_wait(&bin_sem);	//decrease index_counter
         pthread_mutex_lock(&queue_mutex);
         // wait until the queue is not empty
