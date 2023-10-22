@@ -82,17 +82,14 @@ void *provider_insert(void *arg)
         {
             pthread_cond_wait(&queue_available, &queue_mutex);
         }
-        if(buffer_counter < BUFFER_SIZE){
-            // insert the item into the queue
-            queue[buffer_counter] = item;
-            buffer_counter++;
-            printf("%s produced item %d\n", (char*)arg, item);
-            sem_post(&bin_sem);	// semaphore to increase
-            pthread_cond_signal(&queue_full);
-        }
-        else{
-            sleep(2);
-        }
+
+        // insert the item into the queue
+        queue[buffer_counter++] = item;
+        printf("%s produced item %d\n", (char*)arg, item);
+        sem_post(&bin_sem);	// semaphore to increase
+        pthread_cond_signal(&queue_full);
+        sleep(2);
+        
         pthread_mutex_unlock(&queue_mutex);
     }
     return NULL;
@@ -112,7 +109,6 @@ void *buyer_remove(void *arg)
         }
 
         // buy an item from the queue
-        sleep(1);
         item = queue[--buffer_counter];
         printf("Buyer %d bought item %d\n", *((int *)arg), item);
 
@@ -120,6 +116,7 @@ void *buyer_remove(void *arg)
         pthread_mutex_unlock(&queue_mutex);
 
         // sleep
+        sleep(1);
     }
     return NULL;
 }
