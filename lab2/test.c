@@ -108,9 +108,10 @@ void *provider_insert(void *arg)
 // Thread decreases item
 void *buyer_remove(void *arg)
 {
-  
-  printf("Creating Thread: %s\n", (char*)arg);
-  
+  while (index_counter == 0)
+      {
+          pthread_cond_wait(&queue_not_empty, &queue_mutex);
+      }
   for(int i=0;i<BUFFER_SIZE;i++)
   {
     sem_wait(&bin_sem);	//decrease index_counter
