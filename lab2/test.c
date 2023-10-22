@@ -10,7 +10,7 @@ Consider binary semaphore
 #include<semaphore.h>
 #include<signal.h>
 
-#define BUFFER_SIZE 6
+#define BUFFER_SIZE 10
 #define BUYER_THREAD_COUNT  atoi(argv[1])// buyer thread count command-line argument
 
 typedef int buffer_item;
@@ -26,8 +26,8 @@ void *buyer_remove(void *arg);	// function for receiving
 sem_t bin_sem;	// semaphore
 pthread_mutex_t mutx;	// mutex
 
-char provider1[]="Thread A";
-char provider2[]="Thread B";
+char provider1[]="provider A";
+char provider2[]="provider B";
 
 
 int main(int argc, char **argv)
@@ -40,7 +40,12 @@ int main(int argc, char **argv)
     state2 = sem_init(&bin_sem, 0 ,0);
     //mutex initialization
     //semaphore initialization, first value = 0
-
+    // make sure we have right number or format of args in command line
+    if (argc != 2)
+    {
+        printf("Format must be:  [file location] <int>\n");
+        exit(0);
+    }
     if(state1||state2!=0)
         puts("Error mutex & semaphore initialization!!!");
 
@@ -75,14 +80,20 @@ void *provider_insert(void *arg)
   for(int i=0;i<BUFFER_SIZE;i++)
   {
     pthread_mutex_lock(&mutx);
-    
+    // wait until the queue is not full
+    while (buffer_counter  == BUFFER_SIZE)
+    {
+        pthread_cond_wait(&queue_available, &queue_mutex);
+    }
     if(index_counter<BUFFER_SIZE)
     {
       buffer[index_counter] = index_counter;
       index_counter++;
       
-      printf("%s: INSERT item to BUFFER %d\n", (char*)arg, index_counter);
+      printf("%s produced item %d\n", (char*)arg, index_counter);
+
       sem_post(&bin_sem);	// semaphore to increase
+      pthread_cond_signal(&queue_not_empty);
     }
     else
     {
@@ -103,7 +114,7 @@ void *buyer_remove(void *arg)
     sem_wait(&bin_sem);	//decrease index_counter
     pthread_mutex_lock(&mutx);
     sleep(1);
-    printf("%s: REMOVE item from BUFFER %d\n", (char*)arg, index_counter);
+    printf("Buyer %d bought item %d\n", *((int *)arg), index_counter);
     buffer[index_counter] = 0;
     index_counter--;
     pthread_mutex_unlock(&mutx);
