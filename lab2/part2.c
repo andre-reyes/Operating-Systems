@@ -1,3 +1,7 @@
+//Andre Reyes
+//This program is a copy of part 1 that exclusively has only
+//one provider and 6 buyers.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>

@@ -1,3 +1,10 @@
+//Andre Reyes
+//This program creates N+2 threads given in command line 
+//and allows "providers" to put up items for sale
+//and "buyers" to remove those items from the market
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
