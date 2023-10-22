@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 void *provider_insert(void *arg)
 {
     int item;
-    while(true){
+    while(1){
         // produce an item
         item = rand() % 100 + 1; // produce item 1-100
         pthread_mutex_lock(&queue_mutex);
@@ -96,7 +96,7 @@ void *provider_insert(void *arg)
 void *buyer_remove(void *arg)
 {
     int item;
-    while(true){
+    while(1){
         sem_wait(&bin_sem);	//decrease index_counter
         pthread_mutex_lock(&queue_mutex);
         // wait until the queue is not empty

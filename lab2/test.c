@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 // Thread increases item
 void *provider_insert(void *arg)
 {
-  printf("Creating Thread: %s\n", (char*)arg);
+  printf("Creating: %s\n", (char*)arg);
   
   for(int i=0;i<BUFFER_SIZE;i++)
   {
@@ -96,9 +96,9 @@ void *provider_insert(void *arg)
     pthread_cond_signal(&queue_not_empty);
     
     
-      //sleep(2);
     
     pthread_mutex_unlock(&mutx);
+    sleep(2);
   }
 }
 
