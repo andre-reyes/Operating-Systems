@@ -18,7 +18,6 @@ void *provider_insert(void *arg);
 void *buyer_remove(void *arg); 
 
 char provider1_id[] = "Provider A";
-char provider2_id[] = " Provider B";
 
 sem_t bin_sem;	// semaphore
 
@@ -46,7 +45,6 @@ int main(int argc, char **argv)
 
     // create provider threads
     pthread_create(&providers[0], NULL, provider_insert, &provider1_id[0]);
-    pthread_create(&providers[1], NULL, provider_insert, &provider2_id[1]);
 
     // create buyer threads
     for (int i = 0; i < BUYER_THREAD_COUNT; i++){
@@ -56,7 +54,6 @@ int main(int argc, char **argv)
 
     // waiting for provider and buyer threads to terminate
     pthread_join(providers[0], &thread_result);
-    pthread_join(providers[1], &thread_result);
     
     for (int i = 0; i < BUYER_THREAD_COUNT; i++){
         pthread_join(buyers[i], &thread_result);
