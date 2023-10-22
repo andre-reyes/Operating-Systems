@@ -87,19 +87,17 @@ void *provider_insert(void *arg)
     {
         pthread_cond_wait(&queue_available, &mutx);
     }
-    if(index_counter<BUFFER_SIZE)
-    {
-      buffer[index_counter++] = index_counter;
-      
-      printf("%s produced item %d\n", (char*)arg, index_counter);
+    
+    buffer[index_counter++] = index_counter;
+    
+    printf("%s produced item %d\n", (char*)arg, index_counter);
 
-      sem_post(&bin_sem);	// semaphore to increase
-      pthread_cond_signal(&queue_not_empty);
-    }
-    else
-    {
-      sleep(2);
-    }
+    sem_post(&bin_sem);	// semaphore to increase
+    pthread_cond_signal(&queue_not_empty);
+    
+    
+      //sleep(2);
+    
     pthread_mutex_unlock(&mutx);
   }
 }
