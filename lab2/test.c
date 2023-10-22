@@ -116,7 +116,7 @@ void *buyer_remove(void *arg)
     sem_wait(&bin_sem);	//decrease index_counter
     pthread_mutex_lock(&mutx);
     sleep(1);
-    buffer[--index_counter];
+    item = buffer[--index_counter];
     printf("Buyer %d bought item %d\n", *((int *)arg), item);
     pthread_mutex_unlock(&mutx);
   }
