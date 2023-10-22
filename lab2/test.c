@@ -19,6 +19,8 @@ buffer_item buffer[BUFFER_SIZE];
 
 // global variable, all threads can acess
 int index_counter = 0;
+pthread_cond_t queue_available = PTHREAD_COND_INITIALIZER;
+pthread_cond_t queue_not_empty = PTHREAD_COND_INITIALIZER;
 
 void *provider_insert(void *arg);	// function for sending
 void *buyer_remove(void *arg);	// function for receiving
@@ -83,7 +85,7 @@ void *provider_insert(void *arg)
     // wait until the queue is not full
     while (buffer_counter  == BUFFER_SIZE)
     {
-        pthread_cond_wait(&queue_available, &queue_mutex);
+        pthread_cond_wait(&queue_available, &mutx);
     }
     if(index_counter<BUFFER_SIZE)
     {
