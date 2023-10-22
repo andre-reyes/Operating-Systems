@@ -32,10 +32,10 @@ char provider2[]="Thread B";
 
 int main(int argc, char **argv)
 {
-    pthread_t t1, t2, t3;
+    pthread_t t1, t2, buyers[BUYER_THREAD_COUNT];
     void *thread_result;
     int state1, state2;
-
+    int buyer_id[BUYER_THREAD_COUNT];
     state1 = pthread_mutex_init(&mutx, NULL);
     state2 = sem_init(&bin_sem, 0 ,0);
     //mutex initialization
@@ -49,16 +49,16 @@ int main(int argc, char **argv)
     pthread_create(&t2, NULL, provider_insert, &provider2);
     for(int i = 0;i < BUYER_THREAD_COUNT; i++){
         buyer_id[i] = i;
-        pthread_create(&t3, NULL, buyer_remove, &buyer_id[i]);
+        pthread_create(&buyers[i], NULL, buyer_remove, &buyer_id[i]);
     }
     // Waiting thread to terminate
     pthread_join(t1, &thread_result);
     pthread_join(t2, &thread_result);
     for(int i = 0;i < BUYER_THREAD_COUNT; i++){
-        pthread_join(t3, &thread_result);
+        pthread_join(buyers[i], &thread_result);
     }
 
-    printf("Terminate => %s, %s, %s!!!\n", &provider1, &provider2, &thread3);
+    printf("Terminate => %s, %s!!!\n", &provider1, &provider2);
     printf("Final Index: %d\n", index_counter);
 
     sem_destroy(&bin_sem);	// destroy semaphore
@@ -98,15 +98,15 @@ void *buyer_remove(void *arg)
   
   printf("Creating Thread: %s\n", (char*)arg);
   
-  for(int i=0;i<BUFFER_SIZE/2;i++)
+  for(int i=0;i<BUFFER_SIZE;i++)
   {
     sem_wait(&bin_sem);	//decrease index_counter
     pthread_mutex_lock(&mutx);
-      sleep(1);
-      printf("%s: REMOVE item from BUFFER %d\n", (char*)arg, index_counter);
-      buffer[index_counter] = 0;
-      index_counter--;
-      pthread_mutex_unlock(&mutx);
+    sleep(1);
+    printf("%s: REMOVE item from BUFFER %d\n", (char*)arg, index_counter);
+    buffer[index_counter] = 0;
+    index_counter--;
+    pthread_mutex_unlock(&mutx);
     }
 }
 
