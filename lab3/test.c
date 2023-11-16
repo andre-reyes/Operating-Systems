@@ -1,12 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include<unistd.h>
-#include<pthread.h>
-#include<semaphore.h>
-
+#include <stdbool.h>
 #define MAX_SIZE 8000
 #define MIN_SIZE (MAX_SIZE/10)
-#define USER_THREAD_COUNT 4
 
 typedef struct memBlock{
     int isFree;
@@ -16,20 +12,13 @@ typedef struct memBlock{
 }memBlock;
 memBlock *block_list;
 
-pthread_mutex_t mutx;
-sem_t sem;
-int used_memory;
-int max_partition;
+pthread_mutex_t lock;
+sem_t empty, full;
+int *used_memory;
 
 void partition();
 void displayBlocks();
-void *MMS_thread(void* arg);
-void *user_thread(void *arg);
-void *memory_malloc(int size);
-void memory_free(void* ptr, int size);
-void *first_fit(int size);
-void partition();
-void displayBlocks();
+
 void main(){
     //initialize
     srand(time(NULL));
@@ -42,12 +31,12 @@ void main(){
     int state2 = sem_init(&sem, 0 ,1);
     used_memory = 0;
 
-    // //error handling
-    // if (argc != 2)
-    // {
-    //     printf("Format must be: [file location] <int>\n");
-    //     exit(0);
-    // }
+    //error handling
+    if (argc != 2)
+    {
+        printf("Format must be: [file location] <int>\n");
+        exit(0);
+    }
 
     if(state1 || state2 != 0)
         puts("Error mutex & semaphore initialization!!!");
@@ -67,83 +56,79 @@ void main(){
 
     // Waiting for thread to terminate
     pthread_join(mms, &thread_result);
-    for(int i = 0; i < USER_THREAD_COUNT; i++){
-        pthread_join(user[i], &thread_result);
-    }
+    pthread_join(user, &thread_result);
 
     //destroy sem
     sem_destroy(&sem);
 }
-void *MMS_thread(void* arg) {
+void *mms_thread(void* arg) {
     while (1) {
         sem_wait(&sem);
         if (used_memory >= MAX_SIZE) {
             printf("MMS running out of memory, forcing thread(s) to give up memory\n");
-            pthread_mutex_lock(&mutx);
+            pthread_mutex_lock(&lock);
             memBlock* current = block_list;
             while (current != NULL && used_memory >= MAX_SIZE) {
                 used_memory -= current->size;
                 printf("Freed memory of size %d bytes\n", current->size);
                 current = block_list;
             }
-            pthread_mutex_unlock(&mutx);
+            pthread_mutex_unlock(&lock);
         }
         sem_post(&sem);
     }
 }
 void *user_thread(void *arg){
-    int size = rand()%(max_partition-MIN_SIZE)+MIN_SIZE;
-    int user_id = *(int*)arg;
-    displayBlocks();
+    int size = rand()%(1024)+MIN_SIZE;
+    int user_id = (int)arg;
     printf("Thread #%d requesting memory of size %d bytes\n", user_id, size);
     void *user_ptr = memory_malloc(size);
     if(user_ptr != NULL){
-        printf("I am thread #%d, going to sleep\n", user_id);
+        //
+        printf("I am thread #%d, going to sleep", user_id);
         sleep(rand() % 5 + 1);
 
-        printf("I am thread #%d, waking-up\n", user_id);
-        memory_free(user_ptr, size);
-        printf("I am thread #%d, freed %d bytes\n", user_id, size);
+        printf("I am thread #%d, waking-up", user_id);
+        memory_free(usr_ptr, size);
+        printf("I am thread #%d, freed %d bytes", user_id, size);
     }
     else{
         printf("Thread #%d failed to allocate \n", user_id);
     }
-    
-    pthread_exit(NULL);
+    //pthread_exit(NULL);
+
 }
-void *memory_malloc(int size) {
+void* memory_malloc(int size) {
+    first_fit(size);
     used_memory += size;
-    return first_fit(size);
 }
 void memory_free(void* ptr, int size) {
-    pthread_mutex_lock(&mutx);
+    pthread_mutex_lock(&lock);
     memBlock *current = block_list;
-    while(current != ptr){
+    while(current != NULL && current->address < ptr){
         current = current->next;
     }
-    current->isFree = 1;
+    current->size -= size;
     used_memory -= size;
-    pthread_mutex_unlock(&mutx);
+    pthread_mutex_unlock(&lock);
 }
 void *first_fit(int size){
-    pthread_mutex_lock(&mutx);
+    pthread_mutex_lock(&lock);
     void *head = NULL;
     memBlock *current = block_list;
     while(current != NULL){
-        if(size <= current->size && current->isFree == 1){
+        if(size <= current->size && current->isFree){
             current->isFree = 0;
-            pthread_mutex_unlock(&mutx);
-            head = current;
-            break;
+            pthread_mutex_unlock(&lock);
+            head = current->address;
         }
         current = current->next;
     }
-    pthread_mutex_unlock(&mutx);
+    pthread_mutex_unlock(&lock);
     return head;
 }
 void partition(){
     memBlock *current = block_list;
-    max_partition = 0;
     int size;
     int total_memory = MAX_SIZE;
     while (total_memory != 0){
@@ -151,14 +136,11 @@ void partition(){
         total_memory -= size;
         current->isFree = 1;
         current->size = size;
+        // current->address = current;
         if(total_memory <= MIN_SIZE){
             current->size += total_memory;
             total_memory = 0;
             continue;
-        }
-        //create
-        if(current->size > max_partition){
-            max_partition = current->size;
         }
         current->next = (memBlock*)malloc(sizeof(memBlock));
         current = current->next;
@@ -166,16 +148,15 @@ void partition(){
 }
 void displayBlocks(){
     int block_id = 0;
-    pthread_mutex_lock(&mutx);
-
+    int total = 0;
     memBlock *current = block_list;
 
     printf("\n\t%10s | %14s | %8s | %-8s\n", "partitions", "address", "size (b)", "isFree");
     while(current != NULL){
         printf("\t%10d | %14p | %8d | %-8d\n", block_id, current, current->size, current->isFree);
         block_id++;
+        total += current->size;
         current = current->next;
     }
-    pthread_mutex_unlock(&mutx);
-
+    printf("Total Memory: %d\n", total);
 }
